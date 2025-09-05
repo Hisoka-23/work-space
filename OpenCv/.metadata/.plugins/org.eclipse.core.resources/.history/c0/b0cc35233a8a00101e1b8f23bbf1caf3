@@ -1,0 +1,5 @@
+package com.opencv.recognition;
+
+public class FaceRecognizerOneClass {
+
+}

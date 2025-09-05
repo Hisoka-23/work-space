@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<qualifiedTypeNameHistroy>
+    <fullyQualifiedTypeName name="javax.swing.JFrame"/>
+    <fullyQualifiedTypeName name="java.awt.Dimension"/>
+    <fullyQualifiedTypeName name="java.awt.EventQueue"/>
+    <fullyQualifiedTypeName name="javax.swing.JLabel"/>
+    <fullyQualifiedTypeName name="javax.swing.JButton"/>
+    <fullyQualifiedTypeName name="java.awt.event.ActionListener"/>
+    <fullyQualifiedTypeName name="org.opencv.videoio.VideoCapture"/>
+    <fullyQualifiedTypeName name="org.opencv.core.MatOfByte"/>
+    <fullyQualifiedTypeName name="javax.swing.ImageIcon"/>
+    <fullyQualifiedTypeName name="java.text.SimpleDateFormat"/>
+    <fullyQualifiedTypeName name="java.util.Date"/>
+    <fullyQualifiedTypeName name="java.lang.Runnable"/>
+    <fullyQualifiedTypeName name="java.awt.event.WindowAdapter"/>
+    <fullyQualifiedTypeName name="java.awt.event.WindowEvent"/>
+    <fullyQualifiedTypeName name="org.opencv.core.Core"/>
+    <fullyQualifiedTypeName name="org.opencv.core.Mat"/>
+    <fullyQualifiedTypeName name="org.opencv.imgcodecs.Imgcodecs"/>
+    <fullyQualifiedTypeName name="org.opencv.core.MatOfRect"/>
+    <fullyQualifiedTypeName name="org.opencv.imgproc.Imgproc"/>
+    <fullyQualifiedTypeName name="org.opencv.objdetect.Objdetect"/>
+    <fullyQualifiedTypeName name="org.opencv.core.Scalar"/>
+    <fullyQualifiedTypeName name="com.googlecode.javacv.cpp.opencv_core.IplImage"/>
+    <fullyQualifiedTypeName name="org.opencv.objdetect.CascadeClassifier"/>
+    <fullyQualifiedTypeName name="org.opencv.core.Rect"/>
+</qualifiedTypeNameHistroy>

@@ -1,0 +1,5 @@
+package com.opencv.camera;
+
+public class Camera {
+
+}

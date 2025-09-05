@@ -1,0 +1,103 @@
+package com.opencv.recognition;
+
+import org.opencv.core.*;
+import org.opencv.face.LBPHFaceRecognizer;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.objdetect.CascadeClassifier;
+
+import java.io.File;
+import java.util.HashMap;
+import java.util.Locale;
+import java.util.Map;
+
+public class FaceRecognizerOneClassDiag {
+    private static final String CASCADE_PATH = "data/haarcascade_frontalface_default.xml";
+    private static final String MODEL_PATH = "model/lbph.xml";
+    private static final int FACE_W = 100, FACE_H = 100;
+    private static final double UNKNOWN_THRESHOLD = 90.0;
+
+    private final CascadeClassifier detector = new CascadeClassifier();
+    private final LBPHFaceRecognizer recognizer = LBPHFaceRecognizer.create();
+    private final Map<Integer,String> labelMap;
+
+    public FaceRecognizerOneClassDiag(Map<Integer,String> labelMap) {
+        this.labelMap = new HashMap<>(labelMap);
+        // 1) Load cascade
+        System.out.println("Loading cascade: " + new File(CASCADE_PATH).getAbsolutePath());
+        boolean ok = detector.load(CASCADE_PATH);
+        if (!ok || detector.empty()) {
+            throw new IllegalStateException("Cascade load failed. Check path and file content: " + CASCADE_PATH);
+        }
+        // 2) Load model
+        File mf = new File(MODEL_PATH);
+        System.out.println("Loading model: " + mf.getAbsolutePath());
+        if (!mf.exists() || !mf.isFile()) {
+            throw new IllegalStateException("Model file not found. Train and save to: " + mf.getAbsolutePath());
+        }
+        recognizer.read(mf.getAbsolutePath());
+        if (recognizer.empty()) {
+            throw new IllegalStateException("Model loaded but recognizer is empty. Ensure the model was saved via LBPHFaceRecognizer.write");
+        }
+        // Optional: recognizer.setThreshold(UNKNOWN_THRESHOLD);
+    }
+
+    public void recognize(String inputPath, String outputPath) {
+        Mat bgr = Imgcodecs.imread(inputPath);
+        if (bgr.empty()) throw new IllegalArgumentException("Cannot read image: " + new File(inputPath).getAbsolutePath());
+        Mat gray = new Mat();
+        Imgproc.cvtColor(bgr, gray, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.equalizeHist(gray, gray);
+
+        MatOfRect faces = new MatOfRect();
+        int minSize = Math.round(gray.height() * 0.2f);
+        detector.detectMultiScale(gray, faces, 1.1, 3, 0, new Size(minSize, minSize), new Size());
+        Rect[] arr = faces.toArray();
+        System.out.println("Detected faces: " + arr.length);
+        if (arr.length == 0) {
+            System.out.println("No face detected. Try better lighting, frontal pose, or alt2 cascade.");
+        }
+
+        for (Rect r : arr) {
+            Mat roi = new Mat(gray, r);
+            Mat norm = preprocess(roi);
+            int[] label = new int[4];
+            double[] conf = new double[4];
+            recognizer.predict(norm, label, conf);
+            String name = labelMap.getOrDefault(label, "ID " + label);
+            String text = (conf > UNKNOWN_THRESHOLD)
+                    ? "Unknown (" + String.format(Locale.US, "%.1f", conf) + ")"
+                    : name + " (" + String.format(Locale.US, "%.1f", conf) + ")";
+            Imgproc.rectangle(bgr, r, new Scalar(0,255,0), 2);
+            Imgproc.putText(bgr, text, new Point(r.x, Math.max(10, r.y-10)), Imgproc.FONT_HERSHEY_SIMPLEX, 0.7, new Scalar(0,255,0), 2);
+            norm.release();
+            roi.release();
+        }
+
+        boolean written = Imgcodecs.imwrite(outputPath, bgr);
+        System.out.println("Output write " + (written ? "OK -> " : "FAILED -> ") + new File(outputPath).getAbsolutePath());
+        gray.release();
+        bgr.release();
+    }
+
+    private Mat preprocess(Mat grayFace) {
+        Mat resized = new Mat();
+        Imgproc.resize(grayFace, resized, new Size(FACE_W, FACE_H));
+        Imgproc.equalizeHist(resized, resized);
+        return resized;
+    }
+
+    public static void main(String[] args) {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+        // Map training labels to names (must match labels used during training)
+        Map<Integer,String> labelMap = new HashMap<>();
+        labelMap.put(0, "person_1");
+        labelMap.put(1, "person_2");
+
+        FaceRecognizerOneClassDiag app = new FaceRecognizerOneClassDiag(labelMap);
+        String in = "images/test.jpg";
+        String out = "images/test_out.jpg";
+        app.recognize(in, out);
+    }
+}

@@ -1,0 +1,5 @@
+package com.face.recognition;
+
+public class ImageSimilaritySSIM {
+
+}

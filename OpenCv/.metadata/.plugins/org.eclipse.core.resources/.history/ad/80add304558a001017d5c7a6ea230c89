@@ -1,0 +1,152 @@
+package main.demo;
+
+
+
+public class FaceCompare {
+
+    // Load once (e.g., lbpcascade or haarcascade frontal face XML on classpath or absolute path)
+    private static final CascadeClassifier FACE_DETECTOR =
+            new CascadeClassifier("lbpcascade_frontalface.xml");
+
+    public static class Result {
+        public final boolean samePerson;
+        public final double distance;
+        public Result(boolean samePerson, double distance) {
+            this.samePerson = samePerson;
+            this.distance = distance;
+        }
+    }
+
+    // Main API: returns same/not with distance score
+    public static Result areSameFace(String imgPath1, String imgPath2, double threshold) {
+        Mat img1 = opencv_imgcodecs.imread(imgPath1);
+        Mat img2 = opencv_imgcodecs.imread(imgPath2);
+        if (img1.empty() || img2.empty()) {
+            throw new IllegalArgumentException("Failed to read one or both images.");
+        }
+
+        Mat face1 = detectAndPreprocessFace(img1);
+        Mat face2 = detectAndPreprocessFace(img2);
+        if (face1 == null || face2 == null) {
+            // Could not find faces reliably
+            return new Result(false, Double.POSITIVE_INFINITY);
+        }
+
+        // Compute LBPH histograms
+        Mat hist1 = computeLBPH(face1);
+        Mat hist2 = computeLBPH(face2);
+
+        // Compare via Chi-Square distance (lower = more similar)
+        double dist = opencv_imgproc.compareHist(hist1, hist2, opencv_imgproc.HISTCMP_CHISQR);
+        boolean same = dist < threshold;
+        return new Result(same, dist);
+    }
+
+    // Detect largest face, convert to gray, equalize, resize to 100x100
+    private static Mat detectAndPreprocessFace(Mat bgr) {
+        Mat gray = new Mat();
+        cvtColor(bgr, gray, opencv_imgproc.COLOR_BGR2GRAY);
+        equalizeHist(gray, gray);
+
+        RectVector faces = new RectVector();
+        FACE_DETECTOR.detectMultiScale(gray, faces, 1.2, 5, 0, new Size(80, 80), new Size());
+
+        if (faces.size() == 0) return null;
+
+        // Pick largest face
+        Rect best = null;
+        long n = faces.size();
+        for (int i = 0; i < n; i++) {
+            Rect r = faces.get(i);
+            if (best == null || r.area() > best.area()) best = r;
+        }
+        Mat face = new Mat(gray, best).clone();
+
+        // Optional: mild blur to reduce noise, equalize again
+        GaussianBlur(face, face, new Size(3,3), 0);
+        equalizeHist(face, face);
+
+        // Resize to fixed size
+        Mat resized = new Mat();
+        resize(face, resized, new Size(100, 100));
+        return resized;
+    }
+
+    // Minimal LBPH implementation (radius=1, neighbors=8, grid=8x8) -> concatenated histograms
+    private static Mat computeLBPH(Mat gray100) {
+        // Parameters
+        int radius = 1;
+        int neighbors = 8;
+        int gridX = 8;
+        int gridY = 8;
+
+        // Compute LBP image
+        Mat lbp = new Mat(gray100.size(), opencv_core.CV_8UC1);
+        for (int y = radius; y < gray100.rows() - radius; y++) {
+            for (int x = radius; x < gray100.cols() - radius; x++) {
+                int center = (int)gray100.ptr(y, x).get() & 0xFF;
+                int code = 0;
+                int idx = 0;
+                for (int ny = -radius; ny <= radius; ny++) {
+                    for (int nx = -radius; nx <= radius; nx++) {
+                        if (nx == 0 && ny == 0) continue;
+                        if (Math.abs(nx) + Math.abs(ny) == 2) continue; // 8-neighborhood only
+                    }
+                }
+                // Explicit 8-neighborhood in fixed order
+                int[][] offs = new int[][]{
+                    {-1,-1},{0,-1},{1,-1},{1,0},{1,1},{0,1},{-1,1},{-1,0}
+                };
+                for (int k = 0; k < 8; k++) {
+                    int yy = y + offs[k][1], xx = x + offs[k];
+                    int v = (int)gray100.ptr(yy, xx).get() & 0xFF;
+                    code |= (v >= center ? 1 : 0) << (7 - k);
+                }
+                lbp.ptr(y, x).put((byte)(code & 0xFF));
+            }
+        }
+
+        // Grid histograms concatenated
+        int cellW = gray100.cols() / gridX;
+        int cellH = gray100.rows() / gridY;
+        int bins = 256;
+        Mat concat = new Mat(1, bins * gridX * gridY, opencv_core.CV_32F);
+        int offset = 0;
+
+        for (int gy = 0; gy < gridY; gy++) {
+            for (int gx = 0; gx < gridX; gx++) {
+                int x0 = gx * cellW;
+                int y0 = gy * cellH;
+                Rect roi = new Rect(x0, y0, cellW, cellH);
+                Mat cell = new Mat(lbp, roi);
+
+                Mat hist = new Mat();
+                // calcHist: one channel, 256 bins, range [0,256)
+                opencv_imgproc.calcHist(
+                    new MatVector(cell),
+                    new int[]{0},
+                    new Mat(),
+                    hist,
+                    new int[]{bins},
+                    new float[]{0f, 256f},
+                    false
+                );
+                // Normalize hist to L1
+                opencv_core.normalize(hist, hist, 1.0, 0, opencv_core.NORM_L1);
+
+                // Copy into concat row
+                for (int b = 0; b < bins; b++) {
+                    float val = hist.ptr(b).getFloat();
+                    concat.ptr(0, offset + b).putFloat(val);
+                }
+                offset += bins;
+            }
+        }
+        return concat;
+    }
+
+    public static void main(String[] args) {
+        Result r = areSameFace("a.jpg", "b.jpg", 60.0);
+        System.out.println("Same? " + r.samePerson + " | distance=" + r.distance);
+    }
+}

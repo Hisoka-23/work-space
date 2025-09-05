@@ -1,0 +1,5 @@
+package com.face.detection.opencv;
+
+public class FaceDetector {
+
+}

@@ -1,0 +1,9 @@
+/**
+ * 
+ */
+/**
+ * 
+ */
+module FaceDetection {
+	requires opencv;
+}

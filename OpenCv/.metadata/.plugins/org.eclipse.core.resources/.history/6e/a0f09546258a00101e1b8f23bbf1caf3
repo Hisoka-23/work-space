@@ -1,0 +1,23 @@
+package com.face.detection.opencv;
+
+import org.opencv.core.Core;
+import org.opencv.core.Mat;
+import org.opencv.imgcodecs.Imgcodecs;
+
+public class FaceDetector {
+
+	public static void main(String[] args) {
+		
+		System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+		
+		/* System.out.println("library load"); */
+		
+		//Read image from folder
+		Mat image = Imgcodecs.imread("images/images.jfif");
+		
+		//create method for detect and save
+		detectAndSave(image);
+		
+	}
+	
+}

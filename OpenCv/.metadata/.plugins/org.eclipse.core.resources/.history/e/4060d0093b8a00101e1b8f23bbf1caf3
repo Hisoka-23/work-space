@@ -1,0 +1,11 @@
+/**
+ * 
+ */
+/**
+ * 
+ */
+module OpenCv_Camera {
+	requires opencv;
+	requires java.desktop;
+	requires  org.opencv.face.LBPHFaceRecognizer;
+}
