@@ -8,4 +8,11 @@
 	</buildSpec>
 	<natures>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>.link2</name>
+			<type>2</type>
+			<location>C:/Users/Developer/Downloads/opencv_contrib-4.x/opencv_contrib-4.x</location>
+		</link>
+	</linkedResources>
 </projectDescription>

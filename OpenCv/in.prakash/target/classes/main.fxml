@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.example.facerec.controller.MainController">
+    <top>
+        <ToolBar>
+            <Button fx:id="btnStart" text="Start" onAction="#onStart"/>
+            <Button fx:id="btnStop" text="Stop" onAction="#onStop"/>
+            <Button fx:id="btnTrain" text="Train" onAction="#onTrain"/>
+            <Button fx:id="btnEnroll" text="Enroll New" onAction="#onEnroll"/>
+            <Label text="Threshold:"/>
+            <TextField fx:id="txtThreshold" prefWidth="80" text="85.0"/>
+            <Label fx:id="lblStatus" text="Idle"/>
+        </ToolBar>
+    </top>
+    <center>
+        <StackPane>
+            <ImageView fx:id="imageView" preserveRatio="true" fitWidth="900" fitHeight="600"/>
+        </StackPane>
+    </center>
+</BorderPane>
