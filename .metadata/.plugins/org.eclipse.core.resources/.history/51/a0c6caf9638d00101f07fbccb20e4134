@@ -1,0 +1,163 @@
+package com.faceRecogntion.FaceRecognition;
+
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+
+import javax.swing.JOptionPane;
+
+import org.bytedeco.javacpp.opencv_core.Mat;
+import org.bytedeco.javacpp.opencv_core.Rect;
+import org.bytedeco.javacpp.opencv_core.RectVector;
+import org.bytedeco.javacpp.opencv_core.Scalar;
+import org.bytedeco.javacpp.opencv_core.Size;
+import org.bytedeco.javacpp.opencv_imgcodecs;
+import org.bytedeco.javacpp.opencv_imgproc;
+import org.bytedeco.javacpp.opencv_objdetect.CascadeClassifier;
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.javacv.OpenCVFrameGrabber;
+
+public class Capture {
+	public static void main(String[] args)  {
+		
+	}
+	/*
+	 * public void capture() throws Exception, InterruptedException{
+	 * 
+	 * OpenCVFrameConverter.ToMat convertMat = new OpenCVFrameConverter.ToMat(); //
+	 * convert image to Mat OpenCVFrameGrabber camera1 = new OpenCVFrameGrabber(0);
+	 * // capturing webcam images
+	 * 
+	 * camera1.start();
+	 * 
+	 * String basePath=System.getProperty("user.dir");
+	 * 
+	 * CascadeClassifier faceDetector = new CascadeClassifier(basePath+
+	 * "\\src\\main\\resources\\haarcascade_frontalface_alt.xml"); CanvasFrame
+	 * cFrame = new CanvasFrame("Capture", CanvasFrame.getDefaultGamma() /
+	 * camera1.getGamma()); // drawing
+	 * 
+	 * Frame capturedFrame = null; // object to the captured frame Mat colorImage =
+	 * new Mat(); // transfer from frame to color image for face detection int
+	 * sampleNumber = 250; int sample = 1;
+	 * 
+	 * Path path=Paths.get(basePath+"\\src\\main\\resources\\namedata.csv");
+	 * 
+	 * String name = JOptionPane.showInputDialog("Enter Face Name");
+	 * 
+	 * String personId = JOptionPane.showInputDialog("Enter Face ID");
+	 * 
+	 * HashMap<String,String> data=new HashMap<String,String>();
+	 * data.put("ID",personId); data.put("Name", name); try { FileWriter writer =
+	 * new FileWriter(basePath+"\\src\\main\\resources\\namedata.csv",true);
+	 * BufferedWriter bw=new BufferedWriter(writer);
+	 * bw.append(data.get("ID").toString()); bw.append(",");
+	 * bw.append(data.get("Name").toString()); bw.newLine(); bw.close(); } catch
+	 * (IOException e) { // TODO Auto-generated catch block e.printStackTrace(); }
+	 * 
+	 * Frame frame=null; Mat colorImg=new Mat(); Mat gray=new Mat();
+	 * 
+	 * while ((capturedFrame = camera1.grab()) != null && cFrame.isVisible()) {
+	 * 
+	 * if (cFrame.isVisible()) { cFrame.showImage(capturedFrame); }
+	 * 
+	 * while(sample<=sampleNumber) { frame=camera1.grab();
+	 * colorImg=convertMat.convert(frame); opencv_imgproc.cvtColor(colorImg, gray,
+	 * opencv_imgproc.COLOR_BGRA2GRAY); // convert image to gray for better
+	 * detection RectVector detecFace = new RectVector(); // store detected faces
+	 * faceDetector.detectMultiScale(gray, detecFace, 1.1, 1, 0, new Size(160, 160),
+	 * new Size(500, 500)); Rect faceD = detecFace.get(0); Mat captface = new
+	 * Mat(gray, faceD); opencv_imgproc.resize(captface, captface, new Size(160,
+	 * 160));
+	 * opencv_imgcodecs.imwrite(basePath+"\\src\\main\\resources\\photos\\"+name+".
+	 * "+personId+"."+sample+".jpg",captface); System.out.println("Photo " + sample
+	 * + " captured\n"); sample++; }
+	 * 
+	 * if(sample>sampleNumber || !(cFrame.isVisible())) { cFrame.dispose(); // free
+	 * memory camera1.stop(); camera1.close(); colorImg.close(); colorImage.close();
+	 * faceDetector.close(); break; }
+	 * 
+	 * } }
+	 */
+	
+	public void capture() throws InterruptedException, IOException {
+	    String basePath = System.getProperty("user.dir");
+	    String resPath = basePath + "\\src\\main\\resources";
+	    String cascadePath = resPath + "\\haarcascade_frontalface_alt.xml";
+	    String photosDir = resPath + "\\photos";
+	    Files.createDirectories(Paths.get(photosDir));
+
+	    String name = JOptionPane.showInputDialog("Enter Face Name");
+	    if (name == null || name.trim().isEmpty()) return;
+	    String personId = JOptionPane.showInputDialog("Enter Face ID");
+	    if (personId == null || personId.trim().isEmpty()) return;
+
+	    try (BufferedWriter bw = new BufferedWriter(new FileWriter(resPath + "\\namedata.csv", true))) {
+	        bw.write(personId + "," + name);
+	        bw.newLine();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+
+	    OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+	    grabber.start();
+
+	    CanvasFrame cFrame = new CanvasFrame("Capture", CanvasFrame.getDefaultGamma() / grabber.getGamma());
+	    cFrame.setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
+
+	    OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+	    CascadeClassifier faceDetector = new CascadeClassifier(cascadePath);
+
+	    int sample = 1, sampleLimit = 250;
+
+	    try {
+	        while (cFrame.isVisible() && sample <= sampleLimit) {
+	            Frame f = grabber.grab();
+	            if (f == null) break;
+
+	            Mat color = converter.convert(f);
+	            if (color == null || color.empty()) {
+	                cFrame.showImage(f);
+	                continue;
+	            }
+
+	            Mat gray = new Mat();
+	            opencv_imgproc.cvtColor(color, gray, opencv_imgproc.COLOR_BGRA2GRAY);
+
+	            RectVector faces = new RectVector();
+	            faceDetector.detectMultiScale(gray, faces, 1.1, 3, 0, new Size(160, 160), new Size(500, 500));
+
+	            if (faces.size() > 0) {
+	                Rect r = faces.get(0);
+	                opencv_imgproc.rectangle(color, r, new Scalar(0, 255, 0, 0), 2, 8, 0);
+
+	                if (sample <= sampleLimit) {
+	                    Mat roi = new Mat(gray, r);
+	                    Mat out = new Mat();
+	                    opencv_imgproc.resize(roi, out, new Size(160, 160));
+	                    String outPath = photosDir + "\\" + name + "." + personId + "." + sample + ".jpg";
+	                    opencv_imgcodecs.imwrite(outPath, out);
+	                    System.out.println("Photo " + sample + " captured");
+	                    sample++;
+	                }
+	            }
+
+	            cFrame.showImage(converter.convert(color));
+	        }
+	    } finally {
+	        cFrame.dispose();
+	        try { grabber.stop(); } catch (Throwable t) {}
+	        try { grabber.close(); } catch (Throwable t) {}
+	        faceDetector.close();
+	    }
+	}
+
+}
