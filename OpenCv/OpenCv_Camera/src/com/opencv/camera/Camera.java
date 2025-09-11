@@ -53,6 +53,7 @@ public class Camera extends JFrame{
 			public void actionPerformed(ActionEvent e) {
 				clicked = true;
 			}
+			
 		});
 		
 		addWindowListener(new WindowAdapter() {

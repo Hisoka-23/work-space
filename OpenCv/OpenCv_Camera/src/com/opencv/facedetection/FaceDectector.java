@@ -20,7 +20,7 @@ public static void main(String[] args) {
 		/* System.out.println("library load"); */
 		
 		//Read image from folder
-		Mat image = Imgcodecs.imread("images/pro.jpg");
+		Mat image = Imgcodecs.imread("images/prakash.jpg");
 		
 		//create method for detect and save
 		detectAndSave(image);
