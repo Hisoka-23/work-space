@@ -8,7 +8,7 @@ public class CountNumber {
 		
 		Scanner obj = new Scanner(System.in);
 		
-		int n
+		int n;
 		
 	}
 	
