@@ -3,19 +3,14 @@ package Arrays;
 import java.util.Scanner;
 
 public class ReplaceElement {
-
 	public static void main(String[] args) {
 		
 		Scanner obj = new Scanner(System.in);
-		
 		System.out.println("Enter size of array");
-		
 		int size = obj.nextInt();
 		
 		System.out.println("Enter "+size+" elemensts");
-		
 		int a[] = new int[size];
-		
 		for(int i=0; i<a.length; i++) {
 			a[i] = obj.nextInt();
 		}
@@ -46,6 +41,5 @@ public class ReplaceElement {
 			System.out.print(a[i]+" ");
 		}
 		
-	}
-	
+	}	
 }
