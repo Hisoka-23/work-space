@@ -4,7 +4,7 @@ import java.util.Arrays;
 import java.util.Scanner;
 
 class Demo11{
-	static int binarySerach(int a[],int l, int h, int key) {
+	int binarySerach(int a[],int l, int h, int key) {
 		
 		
 		while(l<=h) {
@@ -47,7 +47,7 @@ public class BinarySerach {
 		
 		Demo11 d = new Demo11();
 		
-		System.out.println(d.binarySerach(arr,0,arr.length-1, key));
+		System.out.println(d.binarySerach(arr,0,(arr.length-1)/2, key));
 		
 	}
 	
